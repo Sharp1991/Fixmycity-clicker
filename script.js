@@ -1,56 +1,59 @@
-import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-// 🔗 Supabase credentials (your working project)
-const SUPABASE_URL = "https://kdjwrgcyhtrxfjvhonfh.supabase.co";
-const SUPABASE_ANON_KEY = "sb_publishable_SqTmlMsLjOXafXiv1vwxcg_--j67cTK";
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// ✅ Your Supabase credentials
+const SUPABASE_URL = 'https://kdjwrgcyhtrxfjvhonfh.supabase.co'
+const SUPABASE_KEY = 'sb_publishable_SqTmlMsLjOXafXiv1vwxcg_--j67cTK'
 
-const btn = document.getElementById("clickBtn");
-const statusText = document.getElementById("status");
+// Initialize client
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY)
 
-// ✅ Send GPS data to Supabase (now forces numeric types)
-async function sendToSupabase(lat, lon) {
-  const { error } = await supabase
-    .from("click_data")
-    .insert([
-      {
-        lat: Number(lat),
-        lon: Number(lon),
-        created_at: new Date().toISOString(),
-      },
-    ]);
+const clickBtn = document.getElementById('clickBtn')
+const statusEl = document.getElementById('status')
 
-  if (error) {
-    console.error("Supabase insert error:", error);
-    statusText.textContent = "⚠️ Failed to send to Supabase.";
-  } else {
-    statusText.textContent = `✅ Sent (${lat.toFixed(4)}, ${lon.toFixed(4)})`;
-  }
-}
+let lat = null
+let lon = null
 
-// ✅ Get current GPS location
-function getAndSendLocation() {
-  if (!navigator.geolocation) {
-    statusText.textContent = "❌ GPS not supported.";
-    return;
-  }
-
-  navigator.geolocation.getCurrentPosition(
+// ✅ Watch for GPS
+if (navigator.geolocation) {
+  navigator.geolocation.watchPosition(
     (pos) => {
-      const lat = pos.coords.latitude;
-      const lon = pos.coords.longitude;
-      sendToSupabase(lat, lon);
+      lat = pos.coords.latitude
+      lon = pos.coords.longitude
+      statusEl.textContent = `✅ GPS Ready (${lat.toFixed(5)}, ${lon.toFixed(5)})`
     },
     (err) => {
-      console.error("GPS error:", err);
-      statusText.textContent = "❌ GPS permission denied or unavailable.";
+      statusEl.textContent = `❌ GPS Error: ${err.message}`
     },
-    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-  );
+    { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
+  )
+} else {
+  statusEl.textContent = '❌ GPS not supported on this device.'
 }
 
-// ✅ Button click handler
-btn.addEventListener("click", () => {
-  statusText.textContent = "📡 Getting GPS...";
-  getAndSendLocation();
-});
+// ✅ Handle click
+clickBtn.addEventListener('click', async () => {
+  if (lat === null || lon === null) {
+    statusEl.textContent = '⚠️ Waiting for GPS...'
+    return
+  }
+
+  try {
+    const { error } = await supabase.from('road_clicks').insert([
+      {
+        lat: lat,
+        lon: lon,
+        created_at: new Date().toISOString()
+      }
+    ])
+
+    if (error) {
+      console.error(error)
+      statusEl.textContent = '❌ Failed to send to Supabase.'
+    } else {
+      statusEl.textContent = `✅ Sent (${lat.toFixed(5)}, ${lon.toFixed(5)})`
+    }
+  } catch (err) {
+    console.error(err)
+    statusEl.textContent = '❌ Network error.'
+  }
+})
