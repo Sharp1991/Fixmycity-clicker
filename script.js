@@ -8,11 +8,17 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const btn = document.getElementById("clickBtn");
 const statusText = document.getElementById("status");
 
-// ✅ Send GPS data to Supabase
+// ✅ Send GPS data to Supabase (now forces numeric types)
 async function sendToSupabase(lat, lon) {
-  const { error } = await supabase.from("click_data").insert([
-    { lat: lat, lon: lon, created_at: new Date().toISOString() },
-  ]);
+  const { error } = await supabase
+    .from("click_data")
+    .insert([
+      {
+        lat: Number(lat),
+        lon: Number(lon),
+        created_at: new Date().toISOString(),
+      },
+    ]);
 
   if (error) {
     console.error("Supabase insert error:", error);
@@ -43,7 +49,7 @@ function getAndSendLocation() {
   );
 }
 
-// ✅ Click handler
+// ✅ Button click handler
 btn.addEventListener("click", () => {
   statusText.textContent = "📡 Getting GPS...";
   getAndSendLocation();
