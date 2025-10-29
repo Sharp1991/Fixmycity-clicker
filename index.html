@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Pothole Reporter</title>
+    <title>Pothole Reporter - Offline First</title>
     <style>
         * {
             margin: 0;
@@ -76,15 +76,10 @@
             color: #856404; 
             border: 2px solid #ffc107;
         }
-        .status-error { 
-            background: linear-gradient(135deg, #f8d7da, #f5c6cb); 
-            color: #721c24; 
-            border: 2px solid #dc3545;
-        }
-        .status-offline { 
-            background: linear-gradient(135deg, #e2e3e5, #d6d8db); 
-            color: #383d41; 
-            border: 2px solid #6c757d;
+        .status-stored { 
+            background: linear-gradient(135deg, #cce7ff, #99ceff); 
+            color: #004085; 
+            border: 2px solid #007bff;
         }
         
         .btn-primary {
@@ -107,11 +102,47 @@
             box-shadow: 0 2px 8px rgba(0,123,255,0.4);
         }
         
-        .btn-primary:disabled {
-            background: #6c757d;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
+        .btn-success {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 18px 25px;
+            border-radius: 15px;
+            font-size: 18px;
+            font-weight: 600;
+            width: 100%;
+            cursor: pointer;
+            margin-bottom: 10px;
+            box-shadow: 0 4px 15px rgba(40,167,69,0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-warning {
+            background: linear-gradient(135deg, #ffc107, #ffb300);
+            color: #333;
+            border: none;
+            padding: 15px 20px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            width: 100%;
+            cursor: pointer;
+            margin-bottom: 10px;
+            box-shadow: 0 4px 15px rgba(255,193,7,0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-size: 14px;
+            width: 100%;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: all 0.3s ease;
         }
         
         .intensity-grid {
@@ -163,21 +194,6 @@
         .severe { background: linear-gradient(135deg, #fd7e14, #e55a00); }
         .critical { background: linear-gradient(135deg, #dc3545, #c82333); }
         
-        .offline-indicator {
-            position: absolute;
-            top: 6px;
-            right: 6px;
-            background: rgba(0,0,0,0.8);
-            color: white;
-            border-radius: 50%;
-            width: 18px;
-            height: 18px;
-            font-size: 10px;
-            display: none;
-            align-items: center;
-            justify-content: center;
-        }
-        
         .stats-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -204,9 +220,9 @@
             color: #333;
         }
         
-        .pending-badge {
-            background: #ffc107;
-            color: #856404;
+        .stored-badge {
+            background: #007bff;
+            color: white;
             padding: 2px 6px;
             border-radius: 8px;
             font-size: 10px;
@@ -226,26 +242,43 @@
             text-align: center;
         }
         
-        .btn-sync {
-            background: linear-gradient(135deg, #6c757d, #5a6268);
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 10px;
-            font-size: 14px;
+        .progress-bar {
             width: 100%;
-            cursor: pointer;
-            transition: all 0.3s ease;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            margin: 10px 0;
+            overflow: hidden;
         }
         
-        .btn-sync:active {
-            transform: scale(0.98);
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #28a745, #20c997);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+            width: 0%;
         }
         
-        .btn-sync:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
+        .data-section {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .data-item {
+            padding: 8px;
+            border-bottom: 1px solid #dee2e6;
+            font-size: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .data-item:last-child {
+            border-bottom: none;
         }
         
         /* Mobile optimizations */
@@ -280,7 +313,7 @@
     <div class="container">
         <div class="header">
             <h1>🕳️ Pothole Reporter</h1>
-            <p>Tap to report road issues</p>
+            <p>Works completely offline</p>
         </div>
         
         <div class="card">
@@ -294,22 +327,18 @@
             
             <div class="intensity-grid">
                 <button class="intensity-btn small minor" data-intensity="minor">
-                    <div class="offline-indicator">⏳</div>
                     🟢 Minor<br>
                     <small>Small bump</small>
                 </button>
                 <button class="intensity-btn medium moderate" data-intensity="moderate">
-                    <div class="offline-indicator">⏳</div>
                     🟡 Moderate<br>
                     <small>Noticeable</small>
                 </button>
                 <button class="intensity-btn medium severe" data-intensity="severe">
-                    <div class="offline-indicator">⏳</div>
                     🟠 Severe<br>
                     <small>Hard jolt</small>
                 </button>
                 <button class="intensity-btn large critical" data-intensity="critical">
-                    <div class="offline-indicator">⏳</div>
                     🔴 Critical<br>
                     <small>Dangerous!</small>
                 </button>
@@ -317,38 +346,57 @@
             
             <div class="stats-grid">
                 <div class="stat-item">
-                    <div class="stat-label">Total Reports</div>
+                    <div class="stat-label">Total Records</div>
                     <div class="stat-value" id="totalCount">0</div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-label">Pending</div>
-                    <div class="stat-value" id="pendingCount">0</div>
+                    <div class="stat-label">Stored Locally</div>
+                    <div class="stat-value" id="storedCount">0</div>
                 </div>
                 <div class="stat-item">
                     <div class="stat-label">GPS Accuracy</div>
                     <div class="stat-value" id="gpsAccuracy">-</div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-label">Last Report</div>
+                    <div class="stat-label">Last Record</div>
                     <div class="stat-value" id="lastReportTime">-</div>
                 </div>
             </div>
             
+            <button id="uploadBtn" class="btn-success" style="display: none;">
+                ☁️ Upload to Supabase
+            </button>
+            
+            <button id="exportBtn" class="btn-warning">
+                📤 Export Data (JSON)
+            </button>
+            
             <div class="sync-section">
                 <div class="sync-status" id="syncStatus">
-                    ✅ Online - Ready
+                    💾 All data stored locally
                 </div>
-                <button id="retryBtn" class="btn-sync" style="display: none;">
-                    🔄 Retry Failed Reports
-                </button>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="uploadProgress"></div>
+                </div>
             </div>
+            
+            <div class="data-section" id="dataPreview" style="display: none;">
+                <div style="text-align: center; color: #666; margin-bottom: 10px;">
+                    <small>Recent Records (scroll to see more)</small>
+                </div>
+                <!-- Data items will be inserted here -->
+            </div>
+            
+            <button id="clearDataBtn" class="btn-danger" style="display: none;">
+                🗑️ Clear All Data
+            </button>
         </div>
     </div>
 
     <script type="module">
         import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-        // Your working Supabase credentials
+        // Your Supabase credentials (only used for manual upload)
         const SUPABASE_URL = 'https://kdjwrgcyhtrxfjvhonfh.supabase.co'
         const SUPABASE_KEY = 'sb_publishable_SqTmlMsLjOXafXiv1vwxcg_--j67cTK'
         const supabase = createClient(SUPABASE_URL, SUPABASE_KEY)
@@ -356,22 +404,25 @@
         // Elements
         const statusEl = document.getElementById('status')
         const getLocationBtn = document.getElementById('getLocationBtn')
+        const uploadBtn = document.getElementById('uploadBtn')
+        const exportBtn = document.getElementById('exportBtn')
+        const clearDataBtn = document.getElementById('clearDataBtn')
         const totalCountEl = document.getElementById('totalCount')
-        const pendingCountEl = document.getElementById('pendingCount')
+        const storedCountEl = document.getElementById('storedCount')
         const lastReportTimeEl = document.getElementById('lastReportTime')
         const gpsAccuracyEl = document.getElementById('gpsAccuracy')
         const syncStatusEl = document.getElementById('syncStatus')
-        const retryBtn = document.getElementById('retryBtn')
+        const uploadProgressEl = document.getElementById('uploadProgress')
+        const dataPreviewEl = document.getElementById('dataPreview')
 
         // State
         let currentLocation = null
-        let totalReports = 0
-        let pendingReports = 0
+        let totalRecords = 0
         let gpsWatchId = null
 
-        // Simple pending reports storage
-        const PENDING_KEY = 'pothole_pending_reports'
-        let pendingReportsList = JSON.parse(localStorage.getItem(PENDING_KEY) || '[]')
+        // Local storage keys
+        const STORAGE_KEY = 'pothole_records'
+        const UPLOADED_KEY = 'pothole_uploaded_ids'
 
         // Intensity levels
         const intensityLevels = {
@@ -381,91 +432,225 @@
             critical: { level: 4, description: "Critical danger", size: "large" }
         }
 
-        // Update display
-        function updateDisplay() {
-            pendingReports = pendingReportsList.length
-            pendingCountEl.textContent = pendingReports
-            totalCountEl.textContent = totalReports
+        // Get all stored records
+        function getStoredRecords() {
+            return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]')
+        }
+
+        // Get uploaded record IDs (to avoid re-uploading)
+        function getUploadedIds() {
+            return JSON.parse(localStorage.getItem(UPLOADED_KEY) || '[]')
+        }
+
+        // Save record to local storage
+        function saveRecord(recordData) {
+            const records = getStoredRecords()
+            const uploadedIds = getUploadedIds()
             
-            if (pendingReports > 0) {
-                pendingCountEl.innerHTML = `${pendingReports} <span class="pending-badge">PENDING</span>`
-                retryBtn.style.display = 'block'
-            } else {
-                pendingCountEl.textContent = '0'
-                retryBtn.style.display = 'none'
+            // Generate unique ID
+            const recordId = Date.now() + '-' + Math.random().toString(36).substr(2, 9)
+            const record = {
+                id: recordId,
+                uploaded: false,
+                ...recordData
+            }
+            
+            records.push(record)
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(records))
+            updateDisplay()
+            return recordId
+        }
+
+        // Mark record as uploaded
+        function markAsUploaded(recordId) {
+            const uploadedIds = getUploadedIds()
+            if (!uploadedIds.includes(recordId)) {
+                uploadedIds.push(recordId)
+                localStorage.setItem(UPLOADED_KEY, JSON.stringify(uploadedIds))
+            }
+            updateDisplay()
+        }
+
+        // Remove record from storage
+        function removeRecord(recordId) {
+            const records = getStoredRecords()
+            const filteredRecords = records.filter(record => record.id !== recordId)
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(filteredRecords))
+            updateDisplay()
+        }
+
+        // Clear all data
+        function clearAllData() {
+            if (confirm('Are you sure you want to delete ALL stored pothole data? This cannot be undone!')) {
+                localStorage.removeItem(STORAGE_KEY)
+                localStorage.removeItem(UPLOADED_KEY)
+                updateDisplay()
+                updateStatus('🗑️ All data cleared', 'status-ready')
             }
         }
 
-        // Save pending report
-        function savePendingReport(reportData) {
-            pendingReportsList.push({
-                ...reportData,
-                id: Date.now() + Math.random(),
-                retryCount: 0
+        // Update display
+        function updateDisplay() {
+            const records = getStoredRecords()
+            const uploadedIds = getUploadedIds()
+            
+            totalRecords = records.length
+            const unuploadedCount = records.filter(record => !uploadedIds.includes(record.id)).length
+            
+            totalCountEl.textContent = totalRecords
+            storedCountEl.textContent = unuploadedCount
+            
+            if (unuploadedCount > 0) {
+                storedCountEl.innerHTML = `${unuploadedCount} <span class="stored-badge">NEW</span>`
+                uploadBtn.style.display = 'block'
+                syncStatusEl.textContent = `💾 ${unuploadedCount} records ready to upload`
+            } else {
+                storedCountEl.textContent = '0'
+                uploadBtn.style.display = 'none'
+                syncStatusEl.textContent = totalRecords > 0 ? '✅ All data uploaded' : '💾 No data stored'
+            }
+            
+            // Show/hide data preview and clear button
+            if (totalRecords > 0) {
+                dataPreviewEl.style.display = 'block'
+                clearDataBtn.style.display = 'block'
+                updateDataPreview()
+            } else {
+                dataPreviewEl.style.display = 'none'
+                clearDataBtn.style.display = 'none'
+            }
+            
+            // Update last report time
+            if (records.length > 0) {
+                const lastRecord = records[records.length - 1]
+                lastReportTimeEl.textContent = new Date(lastRecord.created_at).toLocaleTimeString()
+            }
+        }
+
+        // Update data preview
+        function updateDataPreview() {
+            const records = getStoredRecords().slice(-10).reverse() // Show last 10 records
+            const uploadedIds = getUploadedIds()
+            
+            dataPreviewEl.innerHTML = `
+                <div style="text-align: center; color: #666; margin-bottom: 10px;">
+                    <small>Recent Records (${getStoredRecords().length} total)</small>
+                </div>
+            `
+            
+            records.forEach(record => {
+                const isUploaded = uploadedIds.includes(record.id)
+                const dataItem = document.createElement('div')
+                dataItem.className = 'data-item'
+                dataItem.innerHTML = `
+                    <div>
+                        <strong>${record.intensity_label}</strong><br>
+                        <small>${new Date(record.created_at).toLocaleTimeString()}</small>
+                    </div>
+                    <div style="text-align: right;">
+                        <small>${record.lat.toFixed(4)}, ${record.lon.toFixed(4)}</small><br>
+                        <span style="color: ${isUploaded ? '#28a745' : '#007bff'}; font-size: 10px;">
+                            ${isUploaded ? '✅' : '💾'}
+                        </span>
+                    </div>
+                `
+                dataPreviewEl.appendChild(dataItem)
             })
-            localStorage.setItem(PENDING_KEY, JSON.stringify(pendingReportsList))
-            updateDisplay()
         }
 
-        // Remove pending report
-        function removePendingReport(reportId) {
-            pendingReportsList = pendingReportsList.filter(report => report.id !== reportId)
-            localStorage.setItem(PENDING_KEY, JSON.stringify(pendingReportsList))
-            updateDisplay()
-        }
+        // Manual upload to Supabase
+        async function uploadToSupabase() {
+            const records = getStoredRecords()
+            const uploadedIds = getUploadedIds()
+            const recordsToUpload = records.filter(record => !uploadedIds.includes(record.id))
+            
+            if (recordsToUpload.length === 0) {
+                updateStatus('✅ All records already uploaded', 'status-ready')
+                return
+            }
 
-        // Retry failed reports
-        async function retryFailedReports() {
-            if (pendingReportsList.length === 0) return
+            uploadBtn.disabled = true
+            uploadBtn.textContent = '⏳ Uploading...'
+            syncStatusEl.textContent = `🔄 Uploading ${recordsToUpload.length} records...`
             
-            retryBtn.disabled = true
-            syncStatusEl.textContent = `🔄 Retrying ${pendingReportsList.length} reports...`
-            
-            const successful = []
-            const failed = []
-            
-            // Try to send each pending report
-            for (const report of [...pendingReportsList]) {
+            let successfulUploads = 0
+            let failedUploads = 0
+
+            for (let i = 0; i < recordsToUpload.length; i++) {
+                const record = recordsToUpload[i]
+                
+                // Update progress
+                const progress = ((i + 1) / recordsToUpload.length) * 100
+                uploadProgressEl.style.width = `${progress}%`
+                syncStatusEl.textContent = `🔄 Uploading... (${i + 1}/${recordsToUpload.length})`
+                
                 try {
                     const { error } = await supabase.from('road_clicks').insert([{
-                        lat: report.lat,
-                        lon: report.lon,
-                        accuracy: report.accuracy,
-                        intensity: report.intensity,
-                        intensity_label: report.intensity_label,
-                        description: report.description,
-                        speed: report.speed,
-                        heading: report.heading,
-                        created_at: report.created_at
+                        lat: record.lat,
+                        lon: record.lon,
+                        accuracy: record.accuracy,
+                        intensity: record.intensity,
+                        intensity_label: record.intensity_label,
+                        description: record.description,
+                        speed: record.speed,
+                        heading: record.heading,
+                        created_at: record.created_at
                     }])
                     
                     if (error) throw error
                     
-                    successful.push(report.id)
-                    removePendingReport(report.id)
+                    successfulUploads++
+                    markAsUploaded(record.id)
                     
                 } catch (error) {
-                    console.error('Retry failed for report:', report.id, error)
-                    failed.push(report)
+                    console.error('Upload failed for record:', record.id, error)
+                    failedUploads++
                 }
             }
+
+            // Reset UI
+            uploadBtn.disabled = false
+            uploadBtn.textContent = '☁️ Upload to Supabase'
+            uploadProgressEl.style.width = '0%'
             
-            retryBtn.disabled = false
-            
-            if (successful.length > 0) {
-                syncStatusEl.textContent = `✅ ${successful.length} reports sent!`
-                setTimeout(() => {
-                    syncStatusEl.textContent = '✅ Online - Ready'
-                }, 3000)
+            if (failedUploads === 0) {
+                updateStatus(`✅ Successfully uploaded ${successfulUploads} records`, 'status-ready')
+                syncStatusEl.textContent = '✅ All data uploaded to Supabase'
             } else {
-                syncStatusEl.textContent = '❌ Some reports still pending'
+                updateStatus(`⚠️ Uploaded ${successfulUploads}, failed ${failedUploads}`, 'status-waiting')
+                syncStatusEl.textContent = `❌ ${failedUploads} records failed to upload`
             }
+            
+            updateDisplay()
+        }
+
+        // Export data as JSON
+        function exportData() {
+            const records = getStoredRecords()
+            if (records.length === 0) {
+                alert('No data to export!')
+                return
+            }
+            
+            const dataStr = JSON.stringify(records, null, 2)
+            const dataBlob = new Blob([dataStr], { type: 'application/json' })
+            
+            const url = URL.createObjectURL(dataBlob)
+            const link = document.createElement('a')
+            link.href = url
+            link.download = `pothole-data-${new Date().toISOString().split('T')[0]}.json`
+            document.body.appendChild(link)
+            link.click()
+            document.body.removeChild(link)
+            URL.revokeObjectURL(url)
+            
+            updateStatus('📁 Data exported as JSON', 'status-ready')
         }
 
         // GPS handling
         function startGPSTracking() {
             if (!navigator.geolocation) {
-                updateStatus('❌ GPS not supported', 'status-error')
+                updateStatus('❌ GPS not supported', 'status-waiting')
                 return
             }
 
@@ -482,7 +667,7 @@
                     }
                     
                     updateStatus(
-                        `✅ Ready to report!<br><small>Accuracy: ±${currentLocation.accuracy.toFixed(1)}m</small>`,
+                        `✅ Ready to record!<br><small>Accuracy: ±${currentLocation.accuracy.toFixed(1)}m</small>`,
                         'status-ready'
                     )
                     
@@ -507,7 +692,7 @@
                         default:
                             errorMessage += 'Error getting location'
                     }
-                    updateStatus(errorMessage, 'status-error')
+                    updateStatus(errorMessage, 'status-waiting')
                     currentLocation = null
                     
                     document.querySelectorAll('.intensity-btn').forEach(btn => {
@@ -522,13 +707,13 @@
             )
         }
 
-        // Report pothole - SIMPLIFIED and RELIABLE
-        async function reportPothole(intensity) {
+        // Record pothole - OFFLINE FIRST
+        function recordPothole(intensity) {
             if (!currentLocation) return
 
             const intensityInfo = intensityLevels[intensity]
             const now = new Date()
-            const reportData = {
+            const recordData = {
                 lat: currentLocation.lat,
                 lon: currentLocation.lon,
                 accuracy: currentLocation.accuracy,
@@ -540,37 +725,18 @@
                 created_at: now.toISOString()
             }
 
-            try {
-                const button = document.querySelector(`[data-intensity="${intensity}"]`)
-                button.style.opacity = '0.7'
-                setTimeout(() => button.style.opacity = '1', 300)
+            // Visual feedback
+            const button = document.querySelector(`[data-intensity="${intensity}"]`)
+            button.style.opacity = '0.7'
+            setTimeout(() => button.style.opacity = '1', 300)
 
-                updateStatus(`📡 Reporting...`, 'status-waiting')
+            updateStatus(`💾 Saving...`, 'status-waiting')
 
-                // Always try to send to Supabase first
-                const { error } = await supabase.from('road_clicks').insert([reportData])
-
-                if (error) {
-                    // If Supabase fails, save to pending
-                    throw error
-                }
-
-                // Success case
-                totalReports++
-                lastReportTimeEl.textContent = now.toLocaleTimeString()
-                updateStatus(`✅ ${intensityInfo.description}`, 'status-ready')
-                updateDisplay()
-
-            } catch (error) {
-                // If any error occurs, save to pending and show offline message
-                savePendingReport(reportData)
-                totalReports++
-                lastReportTimeEl.textContent = now.toLocaleTimeString() + ' (pending)'
-                updateStatus(`📱 Saved (will retry)`, 'status-offline')
-                updateDisplay()
-                
-                console.log('Report saved to pending, will retry later:', error)
-            }
+            // Save to local storage (always works)
+            saveRecord(recordData)
+            
+            updateStatus(`✅ ${intensityInfo.description}`, 'status-stored')
+            updateDisplay()
         }
 
         function updateStatus(message, className = 'status-waiting') {
@@ -580,13 +746,15 @@
 
         // Event listeners
         getLocationBtn.addEventListener('click', startGPSTracking)
-        retryBtn.addEventListener('click', retryFailedReports)
+        uploadBtn.addEventListener('click', uploadToSupabase)
+        exportBtn.addEventListener('click', exportData)
+        clearDataBtn.addEventListener('click', clearAllData)
 
         document.querySelectorAll('.intensity-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 if (btn.disabled) return
                 const intensity = btn.getAttribute('data-intensity')
-                reportPothole(intensity)
+                recordPothole(intensity)
             })
             btn.disabled = true
         })
@@ -594,20 +762,13 @@
         // Initialize
         updateDisplay()
 
-        // Test Supabase connection on load
+        // Test Supabase connection (optional)
         supabase.from('road_clicks').select('count').limit(1)
             .then(({ data, error }) => {
                 if (error) {
-                    console.error('Supabase connection test failed:', error)
-                    syncStatusEl.textContent = '⚠️ Connection issue - reports will be saved locally'
+                    console.log('Supabase connection test failed - manual upload only')
                 } else {
-                    console.log('Supabase connection successful!')
-                    syncStatusEl.textContent = '✅ Online - Ready'
-                    
-                    // Auto-retry any pending reports on startup
-                    if (pendingReportsList.length > 0) {
-                        setTimeout(retryFailedReports, 2000)
-                    }
+                    console.log('Supabase connection successful - ready for manual upload')
                 }
             })
 
@@ -616,7 +777,7 @@
             if (gpsWatchId) navigator.geolocation.clearWatch(gpsWatchId)
         })
 
-        console.log('🚗 Pothole Reporter Ready!')
+        console.log('🚗 Offline Pothole Reporter Ready!')
     </script>
 </body>
 </html>
