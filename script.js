@@ -1,30 +1,48 @@
-// Replace with your Supabase project credentials
-const SUPABASE_URL = "https://YOUR_PROJECT.supabase.co";
-const SUPABASE_ANON_KEY = "YOUR_ANON_KEY";
-const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 
-const button = document.getElementById("clicker");
+// 🔹 Supabase credentials you provided
+const SUPABASE_URL = "https://kdjwrgcyhtrxfjvhonfh.supabase.co";
+const SUPABASE_KEY = "sb_publishable_SqTmlMsLjOXafXiv1vwxcg_--j67cTK";
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// 🔹 Your table name
+const TABLE = "road_clicks"; // make sure this exists in Supabase
+
+// --- DOM elements ---
+const clickButton = document.getElementById("clickBtn");
 const statusText = document.getElementById("status");
 
-button.addEventListener("click", async () => {
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(async (position) => {
-      const lat = position.coords.latitude;
-      const lon = position.coords.longitude;
-      const timestamp = new Date().toISOString();
+// --- Main click handler ---
+clickButton.addEventListener("click", async () => {
+  try {
+    // Get current location
+    if (!navigator.geolocation) {
+      statusText.textContent = "❌ GPS not supported";
+      return;
+    }
 
-      const { data, error } = await supabase
-        .from("road_points")
-        .insert([{ latitude: lat, longitude: lon, timestamp }]);
+    navigator.geolocation.getCurrentPosition(async (pos) => {
+      const lat = pos.coords.latitude;
+      const lon = pos.coords.longitude;
+
+      // Send to Supabase
+      const { error } = await supabase.from(TABLE).insert([
+        {
+          lat,
+          lon,
+          timestamp: new Date().toISOString(),
+        },
+      ]);
 
       if (error) {
-        console.error(error);
-        statusText.textContent = "Error saving point!";
+        console.error("Supabase insert error:", error.message);
+        statusText.textContent = "⚠️ Failed to send";
       } else {
-        statusText.textContent = `✅ Marked: ${lat}, ${lon}`;
+        statusText.textContent = `✅ Click saved (${lat.toFixed(5)}, ${lon.toFixed(5)})`;
       }
     });
-  } else {
-    statusText.textContent = "Geolocation not supported.";
+  } catch (err) {
+    console.error("Click error:", err);
+    statusText.textContent = "⚠️ Error saving data";
   }
 });
