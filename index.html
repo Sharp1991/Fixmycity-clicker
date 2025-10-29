@@ -1,201 +1,365 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Pothole Reporter</title>
     <style>
-        body { 
-            font-family: Arial, sans-serif; 
-            text-align: center; 
-            padding: 20px;
-            background: #f8f9fa;
-            max-width: 500px;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            min-height: 100vh;
+            padding: 20px 15px;
+            line-height: 1.4;
+        }
+        
+        .container {
+            max-width: 100%;
             margin: 0 auto;
         }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            color: white;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 5px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            backdrop-filter: blur(10px);
+        }
+        
         #status {
-            font-size: 18px;
-            margin: 20px 0;
+            font-size: 16px;
+            text-align: center;
             padding: 15px;
-            border-radius: 8px;
-            min-height: 60px;
+            border-radius: 15px;
+            margin-bottom: 15px;
+            min-height: 70px;
             display: flex;
             align-items: center;
             justify-content: center;
             flex-direction: column;
+            transition: all 0.3s ease;
         }
-        .intensity-buttons {
+        
+        .status-ready { 
+            background: linear-gradient(135deg, #d4edda, #c3e6cb); 
+            color: #155724; 
+            border: 2px solid #28a745;
+        }
+        .status-waiting { 
+            background: linear-gradient(135deg, #fff3cd, #ffeaa7); 
+            color: #856404; 
+            border: 2px solid #ffc107;
+        }
+        .status-error { 
+            background: linear-gradient(135deg, #f8d7da, #f5c6cb); 
+            color: #721c24; 
+            border: 2px solid #dc3545;
+        }
+        .status-offline { 
+            background: linear-gradient(135deg, #e2e3e5, #d6d8db); 
+            color: #383d41; 
+            border: 2px solid #6c757d;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            border: none;
+            padding: 18px 25px;
+            border-radius: 15px;
+            font-size: 18px;
+            font-weight: 600;
+            width: 100%;
+            cursor: pointer;
+            margin-bottom: 10px;
+            box-shadow: 0 4px 15px rgba(0,123,255,0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:active {
+            transform: scale(0.98);
+            box-shadow: 0 2px 8px rgba(0,123,255,0.4);
+        }
+        
+        .btn-primary:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .intensity-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin: 0 auto 20px;
+            gap: 12px;
+            margin: 20px 0;
         }
+        
         .intensity-btn {
-            font-size: 16px;
             border: none;
-            border-radius: 12px;
+            border-radius: 16px;
             cursor: pointer;
             color: white;
             font-weight: bold;
-            transition: all 0.2s;
+            transition: all 0.2s ease;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             position: relative;
             overflow: hidden;
+            padding: 15px 8px;
+            min-height: 90px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
+        
         .intensity-btn:active {
             transform: scale(0.95);
         }
+        
         .intensity-btn.small {
-            padding: 15px 10px;
             font-size: 14px;
             min-height: 80px;
         }
+        
         .intensity-btn.medium {
-            padding: 25px 15px;
-            font-size: 16px;
+            font-size: 15px;
             min-height: 100px;
         }
+        
         .intensity-btn.large {
-            padding: 35px 20px;
-            font-size: 18px;
-            min-height: 120px;
+            font-size: 16px;
+            min-height: 110px;
         }
+        
         .minor { background: linear-gradient(135deg, #28a745, #20c997); }
-        .moderate { background: linear-gradient(135deg, #ffc107, #ffb300); color: black; }
+        .moderate { background: linear-gradient(135deg, #ffc107, #ffb300); color: #333; }
         .severe { background: linear-gradient(135deg, #fd7e14, #e55a00); }
         .critical { background: linear-gradient(135deg, #dc3545, #c82333); }
+        
         .offline-indicator {
             position: absolute;
-            top: 5px;
-            right: 5px;
-            background: rgba(0,0,0,0.7);
+            top: 6px;
+            right: 6px;
+            background: rgba(0,0,0,0.8);
             color: white;
             border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            font-size: 12px;
+            width: 18px;
+            height: 18px;
+            font-size: 10px;
             display: none;
+            align-items: center;
+            justify-content: center;
         }
-        #getLocationBtn {
-            background: #007bff;
-            color: white;
-            font-size: 18px;
-            padding: 15px 30px;
-            margin: 10px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            width: 100%;
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: 15px 0;
         }
-        .stats {
-            margin: 20px 0;
-            padding: 15px;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            text-align: left;
-        }
+        
         .stat-item {
-            margin: 8px 0;
-            font-size: 14px;
-            color: #666;
-            display: flex;
-            justify-content: between;
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 12px;
+            text-align: center;
         }
+        
         .stat-label {
-            flex: 1;
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 4px;
         }
+        
         .stat-value {
+            font-size: 18px;
             font-weight: bold;
             color: #333;
         }
+        
         .cache-indicator {
             background: #ffc107;
             color: #856404;
-            padding: 5px 10px;
-            border-radius: 4px;
-            font-size: 12px;
-            margin-left: 10px;
+            padding: 2px 6px;
+            border-radius: 8px;
+            font-size: 10px;
+            margin-left: 5px;
         }
-        .ready { background: #d4edda; color: #155724; border: 2px solid #c3e6cb; }
-        .waiting { background: #fff3cd; color: #856404; border: 2px solid #ffeaa7; }
-        .error { background: #f8d7da; color: #721c24; border: 2px solid #f5c6cb; }
-        .offline { background: #e2e3e5; color: #383d41; border: 2px solid #d6d8db; }
+        
+        .sync-section {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #e9ecef;
+        }
+        
         .sync-status {
-            margin-top: 10px;
-            font-size: 12px;
+            font-size: 14px;
             color: #666;
+            margin-bottom: 10px;
+            text-align: center;
         }
-        #syncBtn {
-            background: #6c757d;
+        
+        .btn-sync {
+            background: linear-gradient(135deg, #6c757d, #5a6268);
             color: white;
             border: none;
-            padding: 8px 15px;
-            border-radius: 4px;
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-size: 14px;
+            width: 100%;
             cursor: pointer;
-            margin-left: 10px;
+            transition: all 0.3s ease;
         }
-        #syncBtn:disabled {
-            opacity: 0.5;
+        
+        .btn-sync:active {
+            transform: scale(0.98);
+        }
+        
+        .btn-sync:disabled {
+            opacity: 0.6;
             cursor: not-allowed;
+            transform: none;
+        }
+        
+        .gps-info {
+            font-size: 12px;
+            color: #666;
+            text-align: center;
+            margin-top: 5px;
+        }
+        
+        /* Mobile optimizations */
+        @media (max-width: 380px) {
+            .intensity-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+            
+            .intensity-btn {
+                min-height: 70px;
+                padding: 12px 8px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 24px;
+            }
+        }
+        
+        @media (min-width: 768px) {
+            .container {
+                max-width: 400px;
+            }
         }
     </style>
 </head>
 <body>
-    <h1>🕳️ Pothole Reporter</h1>
-    <div id="status">Click "Get Location" to start</div>
-    
-    <button id="getLocationBtn">Get Location</button>
-
-    <div class="intensity-buttons">
-        <button class="intensity-btn small minor" data-intensity="minor">
-            <div class="offline-indicator">⏳</div>
-            🟢 Minor<br><small>Small bump</small>
-        </button>
-        <button class="intensity-btn medium moderate" data-intensity="moderate">
-            <div class="offline-indicator">⏳</div>
-            🟡 Moderate<br><small>Noticeable</small>
-        </button>
-        <button class="intensity-btn medium severe" data-intensity="severe">
-            <div class="offline-indicator">⏳</div>
-            🟠 Severe<br><small>Hard jolt</small>
-        </button>
-        <button class="intensity-btn large critical" data-intensity="critical">
-            <div class="offline-indicator">⏳</div>
-            🔴 Critical<br><small>Dangerous!</small>
-        </button>
-    </div>
-
-    <div class="stats">
-        <div class="stat-item">
-            <span class="stat-label">Total Reports:</span>
-            <span class="stat-value" id="totalCount">0</span>
+    <div class="container">
+        <div class="header">
+            <h1>🕳️ Pothole Reporter</h1>
+            <p>Tap to report road issues</p>
         </div>
-        <div class="stat-item">
-            <span class="stat-label">Cached Reports:</span>
-            <span class="stat-value" id="cachedCount">0</span>
-            <span id="syncBtnContainer"></span>
+        
+        <div class="card">
+            <div id="status" class="status-waiting">
+                Tap "Get Location" to start
+            </div>
+            
+            <button id="getLocationBtn" class="btn-primary">
+                📍 Get Location
+            </button>
+            
+            <div class="intensity-grid">
+                <button class="intensity-btn small minor" data-intensity="minor">
+                    <div class="offline-indicator">⏳</div>
+                    🟢 Minor<br>
+                    <small>Small bump</small>
+                </button>
+                <button class="intensity-btn medium moderate" data-intensity="moderate">
+                    <div class="offline-indicator">⏳</div>
+                    🟡 Moderate<br>
+                    <small>Noticeable</small>
+                </button>
+                <button class="intensity-btn medium severe" data-intensity="severe">
+                    <div class="offline-indicator">⏳</div>
+                    🟠 Severe<br>
+                    <small>Hard jolt</small>
+                </button>
+                <button class="intensity-btn large critical" data-intensity="critical">
+                    <div class="offline-indicator">⏳</div>
+                    🔴 Critical<br>
+                    <small>Dangerous!</small>
+                </button>
+            </div>
+            
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-label">Total Reports</div>
+                    <div class="stat-value" id="totalCount">0</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Cached</div>
+                    <div class="stat-value" id="cachedCount">0</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">GPS Accuracy</div>
+                    <div class="stat-value" id="gpsAccuracy">-</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Last Report</div>
+                    <div class="stat-value" id="lastReportTime">-</div>
+                </div>
+            </div>
+            
+            <div class="sync-section">
+                <div class="sync-status" id="syncStatus">
+                    Checking connection...
+                </div>
+                <button id="syncBtn" class="btn-sync" style="display: none;">
+                    🔄 Sync Cached Reports
+                </button>
+            </div>
         </div>
-        <div class="stat-item">
-            <span class="stat-label">Last Report:</span>
-            <span class="stat-value" id="lastReportTime">None</span>
-        </div>
-        <div class="stat-item">
-            <span class="stat-label">GPS Accuracy:</span>
-            <span class="stat-value" id="gpsAccuracy">-</span>
-        </div>
-        <div class="sync-status" id="syncStatus">Online - Ready to sync</div>
     </div>
 
     <script type="module">
         import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-        // Supabase setup
         const SUPABASE_URL = 'https://kdjwrgcyhtrxfjvhonfh.supabase.co'
         const SUPABASE_KEY = 'sb_publishable_SqTmlMsLjOXafXiv1vwxcg_--j67cTK'
         const supabase = createClient(SUPABASE_URL, SUPABASE_KEY)
 
+        // Elements
         const statusEl = document.getElementById('status')
         const getLocationBtn = document.getElementById('getLocationBtn')
         const totalCountEl = document.getElementById('totalCount')
@@ -203,20 +367,20 @@
         const lastReportTimeEl = document.getElementById('lastReportTime')
         const gpsAccuracyEl = document.getElementById('gpsAccuracy')
         const syncStatusEl = document.getElementById('syncStatus')
-        const syncBtnContainer = document.getElementById('syncBtnContainer')
+        const syncBtn = document.getElementById('syncBtn')
 
+        // State
         let currentLocation = null
         let totalReports = 0
-        let cachedReports = 0
         let gpsWatchId = null
-        let isOnline = navigator.onLine
+        let isOnline = true
         let syncInProgress = false
 
-        // Initialize cache
+        // Cache setup
         const CACHE_KEY = 'pothole_reports_cache'
         let reportCache = JSON.parse(localStorage.getItem(CACHE_KEY) || '[]')
 
-        // Intensity descriptions with button sizes
+        // Intensity levels
         const intensityLevels = {
             minor: { level: 1, description: "Minor bump", size: "small" },
             moderate: { level: 2, description: "Moderate bump", size: "medium" },
@@ -224,49 +388,55 @@
             critical: { level: 4, description: "Critical danger", size: "large" }
         }
 
-        // Update cache display
-        function updateCacheDisplay() {
-            cachedReports = reportCache.length
-            cachedCountEl.textContent = cachedReports
-            
-            if (cachedReports > 0) {
-                cachedCountEl.innerHTML = `${cachedReports} <span class="cache-indicator">CACHED</span>`
-                
-                // Add sync button if not exists
-                if (!document.getElementById('syncBtn')) {
-                    const syncBtn = document.createElement('button')
-                    syncBtn.id = 'syncBtn'
-                    syncBtn.textContent = 'Sync Now'
-                    syncBtn.onclick = syncCachedReports
-                    syncBtnContainer.appendChild(syncBtn)
-                }
-            } else {
-                cachedCountEl.textContent = '0'
-                const syncBtn = document.getElementById('syncBtn')
-                if (syncBtn) syncBtn.remove()
+        // Network detection
+        async function testInternetConnection() {
+            try {
+                const response = await fetch('https://www.gstatic.com/generate_204', { 
+                    method: 'HEAD',
+                    cache: 'no-cache',
+                    timeout: 5000
+                })
+                return response.status === 204
+            } catch (error) {
+                return false
             }
         }
 
-        // Save to cache
+        // Cache management
+        function updateCacheDisplay() {
+            const cachedCount = reportCache.length
+            cachedCountEl.textContent = cachedCount
+            
+            if (cachedCount > 0) {
+                syncBtn.style.display = 'block'
+            } else {
+                syncBtn.style.display = 'none'
+            }
+        }
+
         function saveToCache(reportData) {
             reportCache.push({
                 ...reportData,
                 cached_at: new Date().toISOString(),
-                id: Date.now() + Math.random() // Unique ID for caching
+                id: Date.now() + Math.random()
             })
             localStorage.setItem(CACHE_KEY, JSON.stringify(reportCache))
             updateCacheDisplay()
         }
 
-        // Sync cached reports
+        // Sync functionality
         async function syncCachedReports() {
             if (syncInProgress || reportCache.length === 0) return
             
-            syncInProgress = true
-            const syncBtn = document.getElementById('syncBtn')
-            if (syncBtn) syncBtn.disabled = true
+            const isReallyOnline = await testInternetConnection()
+            if (!isReallyOnline) {
+                syncStatusEl.textContent = '❌ No internet connection'
+                return
+            }
             
-            syncStatusEl.textContent = `🔄 Syncing ${reportCache.length} cached reports...`
+            syncInProgress = true
+            syncBtn.disabled = true
+            syncStatusEl.textContent = `🔄 Syncing ${reportCache.length} reports...`
             
             const successfulSyncs = []
             const failedSyncs = []
@@ -274,79 +444,79 @@
             for (let i = 0; i < reportCache.length; i++) {
                 const cachedReport = reportCache[i]
                 try {
-                    const { error } = await supabase
-                        .from('road_clicks')
-                        .insert([{
-                            lat: cachedReport.lat,
-                            lon: cachedReport.lon,
-                            accuracy: cachedReport.accuracy,
-                            intensity: cachedReport.intensity,
-                            intensity_label: cachedReport.intensity_label,
-                            description: cachedReport.description,
-                            speed: cachedReport.speed,
-                            heading: cachedReport.heading,
-                            created_at: cachedReport.created_at,
-                            cached_sync: true
-                        }])
+                    const { error } = await supabase.from('road_clicks').insert([{
+                        lat: cachedReport.lat,
+                        lon: cachedReport.lon,
+                        accuracy: cachedReport.accuracy,
+                        intensity: cachedReport.intensity,
+                        intensity_label: cachedReport.intensity_label,
+                        description: cachedReport.description,
+                        speed: cachedReport.speed,
+                        heading: cachedReport.heading,
+                        created_at: cachedReport.created_at,
+                        cached_sync: true
+                    }])
                     
-                    if (error) throw error
-                    successfulSyncs.push(cachedReport.id)
+                    if (!error) successfulSyncs.push(cachedReport.id)
+                    else throw error
                     
                 } catch (error) {
-                    console.error('Sync failed for report:', cachedReport.id, error)
                     failedSyncs.push(cachedReport)
                 }
                 
-                // Update progress
                 syncStatusEl.textContent = `🔄 Syncing... (${i + 1}/${reportCache.length})`
             }
             
-            // Update cache with only failed syncs
             reportCache = failedSyncs
             localStorage.setItem(CACHE_KEY, JSON.stringify(reportCache))
             updateCacheDisplay()
             
             syncInProgress = false
-            if (syncBtn) syncBtn.disabled = false
+            syncBtn.disabled = false
             
             if (successfulSyncs.length > 0) {
                 syncStatusEl.textContent = `✅ Synced ${successfulSyncs.length} reports!`
-                setTimeout(() => {
-                    syncStatusEl.textContent = isOnline ? 'Online - Ready to sync' : 'Offline - Reports cached'
-                }, 3000)
+                setTimeout(updateOnlineStatus, 2000)
             } else {
-                syncStatusEl.textContent = '❌ Sync failed - still offline?'
+                syncStatusEl.textContent = '❌ Sync failed'
             }
         }
 
-        // Network status monitoring
-        function updateOnlineStatus() {
-            isOnline = navigator.onLine
+        // Network status
+        async function updateOnlineStatus() {
+            isOnline = await testInternetConnection()
+            
             if (isOnline) {
-                syncStatusEl.textContent = 'Online - Ready to sync'
-                statusEl.classList.remove('offline')
+                syncStatusEl.textContent = reportCache.length > 0 
+                    ? `✅ Online - ${reportCache.length} cached` 
+                    : '✅ Online - Ready'
+                statusEl.className = currentLocation ? 'status-ready' : 'status-waiting'
                 
-                // Auto-sync when coming online
-                if (reportCache.length > 0) {
+                if (reportCache.length > 0 && !syncInProgress) {
                     setTimeout(syncCachedReports, 1000)
                 }
             } else {
-                syncStatusEl.textContent = 'Offline - Reports will be cached'
-                statusEl.classList.add('offline')
+                syncStatusEl.textContent = reportCache.length > 0
+                    ? `📴 Offline - ${reportCache.length} cached`
+                    : '📴 Offline - Reports will cache'
+                if (statusEl.className !== 'status-error') {
+                    statusEl.className = 'status-offline'
+                }
             }
+            
+            document.querySelectorAll('.offline-indicator').forEach(indicator => {
+                indicator.style.display = isOnline ? 'none' : 'flex'
+            })
         }
 
-        window.addEventListener('online', updateOnlineStatus)
-        window.addEventListener('offline', updateOnlineStatus)
-
-        // Continuous GPS tracking
+        // GPS handling
         function startGPSTracking() {
             if (!navigator.geolocation) {
-                updateStatus('❌ Geolocation not supported', 'error')
+                updateStatus('❌ GPS not supported', 'status-error')
                 return
             }
 
-            updateStatus('📍 Tracking GPS position...', 'waiting')
+            updateStatus('📍 Getting location...', 'status-waiting')
             
             gpsWatchId = navigator.geolocation.watchPosition(
                 (position) => {
@@ -359,58 +529,49 @@
                     }
                     
                     updateStatus(
-                        `✅ Ready to Report Potholes<br>
-                        <small>Accuracy: ±${currentLocation.accuracy.toFixed(1)}m</small>`,
-                        'ready'
+                        `✅ Ready to report!<br><small>Accuracy: ±${currentLocation.accuracy.toFixed(1)}m</small>`,
+                        'status-ready'
                     )
                     
                     gpsAccuracyEl.textContent = `±${currentLocation.accuracy.toFixed(1)}m`
                     
-                    // Enable all intensity buttons
                     document.querySelectorAll('.intensity-btn').forEach(btn => {
                         btn.disabled = false
                     })
                 },
                 (error) => {
-                    handleGPSError(error)
+                    let errorMessage = '❌ GPS: '
+                    switch(error.code) {
+                        case error.PERMISSION_DENIED:
+                            errorMessage += 'Allow location access'
+                            break
+                        case error.POSITION_UNAVAILABLE:
+                            errorMessage += 'Location unavailable'
+                            break
+                        case error.TIMEOUT:
+                            errorMessage += 'Timeout - retrying'
+                            break
+                        default:
+                            errorMessage += 'Error getting location'
+                    }
+                    updateStatus(errorMessage, 'status-error')
+                    currentLocation = null
+                    
+                    document.querySelectorAll('.intensity-btn').forEach(btn => {
+                        btn.disabled = true
+                    })
                 },
                 {
                     enableHighAccuracy: true,
-                    timeout: 5000,
-                    maximumAge: 2000
+                    timeout: 10000,
+                    maximumAge: 0
                 }
             )
         }
 
-        function handleGPSError(error) {
-            let errorMessage = '❌ GPS Error: '
-            switch(error.code) {
-                case error.PERMISSION_DENIED:
-                    errorMessage += 'Permission denied. Please allow location access.'
-                    break
-                case error.POSITION_UNAVAILABLE:
-                    errorMessage += 'Location unavailable.'
-                    break
-                case error.TIMEOUT:
-                    errorMessage += 'Request timed out.'
-                    break
-                default:
-                    errorMessage += 'Unknown error.'
-            }
-            updateStatus(errorMessage, 'error')
-            currentLocation = null
-            
-            document.querySelectorAll('.intensity-btn').forEach(btn => {
-                btn.disabled = true
-            })
-        }
-
-        // Report pothole with intensity
+        // Report pothole
         async function reportPothole(intensity) {
-            if (!currentLocation) {
-                updateStatus('❌ No GPS signal available', 'error')
-                return
-            }
+            if (!currentLocation) return
 
             const intensityInfo = intensityLevels[intensity]
             const now = new Date()
@@ -427,96 +588,74 @@
             }
 
             try {
-                // Visual feedback
                 const button = document.querySelector(`[data-intensity="${intensity}"]`)
-                const offlineIndicator = button.querySelector('.offline-indicator')
                 button.style.opacity = '0.7'
-                
-                if (!isOnline) {
-                    offlineIndicator.style.display = 'flex'
-                }
-                
-                setTimeout(() => {
-                    button.style.opacity = '1'
-                    if (isOnline) {
-                        offlineIndicator.style.display = 'none'
-                    }
-                }, 300)
+                setTimeout(() => button.style.opacity = '1', 300)
 
-                updateStatus(`📡 Reporting ${intensityInfo.description}...`, 'waiting')
+                updateStatus(`📡 Reporting...`, 'status-waiting')
 
+                const isReallyOnline = await testInternetConnection()
                 let success = false
                 
-                if (isOnline) {
-                    const { error } = await supabase
-                        .from('road_clicks')
-                        .insert([reportData])
-
-                    if (!error) {
-                        success = true
-                    }
+                if (isReallyOnline) {
+                    const { error } = await supabase.from('road_clicks').insert([reportData])
+                    if (!error) success = true
                 }
 
                 if (success) {
-                    // Online success
                     totalReports++
                     totalCountEl.textContent = totalReports
                     lastReportTimeEl.textContent = now.toLocaleTimeString()
-                    
-                    updateStatus(
-                        `✅ Reported: ${intensityInfo.description}`,
-                        'ready'
-                    )
+                    updateStatus(`✅ ${intensityInfo.description}`, 'status-ready')
                 } else {
-                    // Save to cache (offline or failed)
                     saveToCache(reportData)
                     totalReports++
                     totalCountEl.textContent = totalReports
-                    lastReportTimeEl.textContent = now.toLocaleTimeString() + ' (cached)'
-                    
-                    updateStatus(
-                        `💾 Cached: ${intensityInfo.description}<br>
-                        <small>Will sync when online</small>`,
-                        isOnline ? 'ready' : 'offline'
-                    )
+                    lastReportTimeEl.textContent = now.toLocaleTimeString()
+                    updateStatus(`💾 Cached: ${intensityInfo.description}`, 'status-offline')
                 }
 
-                console.log(`Pothole reported: ${intensity}`, reportData)
-
             } catch (error) {
-                console.error('Report error:', error)
-                // Even if error, save to cache
                 saveToCache(reportData)
-                updateStatus(`💾 Saved offline: ${intensityInfo.description}`, 'offline')
+                totalReports++
+                totalCountEl.textContent = totalReports
+                updateStatus(`💾 Saved offline`, 'status-offline')
             }
         }
 
-        function updateStatus(message, type = '') {
+        function updateStatus(message, className = 'status-waiting') {
             statusEl.innerHTML = message
-            statusEl.className = type
+            statusEl.className = className
         }
 
         // Event listeners
         getLocationBtn.addEventListener('click', startGPSTracking)
-        
+        syncBtn.addEventListener('click', syncCachedReports)
+
         document.querySelectorAll('.intensity-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
+            btn.addEventListener('click', (e) => {
+                if (btn.disabled) return
                 const intensity = btn.getAttribute('data-intensity')
                 reportPothole(intensity)
             })
             btn.disabled = true
         })
 
+        // Network events
+        window.addEventListener('online', updateOnlineStatus)
+        window.addEventListener('offline', updateOnlineStatus)
+
         // Initialize
         updateOnlineStatus()
         updateCacheDisplay()
-        updateStatus('Click "Get Location" to start reporting potholes')
-        
+        setInterval(updateOnlineStatus, 15000)
+
+        // Cleanup
         window.addEventListener('beforeunload', () => {
             if (gpsWatchId) navigator.geolocation.clearWatch(gpsWatchId)
         })
 
-        console.log('Pothole reporter with cache ready')
+        console.log('🚗 Pothole Reporter Ready!')
     </script>
 </body>
 </html>
