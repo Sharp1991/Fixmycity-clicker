@@ -1,10 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FixMyCity Clicker</title>
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background-color: #f0f2f5;
+      font-family: Arial, sans-serif;
+    }
+    .container {
+      text-align: center;
+      background: white;
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+    h2 {
+      margin-bottom: 20px;
+      color: #333;
+    }
+    #clickBtn {
+      background-color: #007bff;
+      color: white;
+      font-size: 2em;
+      font-weight: bold;
+      padding: 25px 60px;
+      border: none;
+      border-radius: 15px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    #clickBtn:active {
+      background-color: #0056b3;
+    }
+    #status {
+      margin-top: 25px;
+      font-size: 1.2em;
+      color: #333;
+    }
+  </style>
+</head>
 <body>
   <div class="container">
-    <h1>Fix My City</h1>
-    <p>Report potholes, garbage, or civic issues with one click.</p>
-    <button id="reportBtn">📍 Report Now</button>
-    <p id="gpsStatus" class="status">Waiting for GPS...</p>
+    <h2>🛠️ FixMyCity Road Clicker</h2>
+    <button id="clickBtn">CLICK 📍</button>
+    <p id="status">Waiting for GPS...</p>
   </div>
 
-  <script src="script.js"></script>
+  <script type="module" src="script.js"></script>
 </body>
+</html>
