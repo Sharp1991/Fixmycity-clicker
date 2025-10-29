@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>FixMyCity Clicker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+</head>
+<body style="font-family:sans-serif;text-align:center;margin-top:50px;">
+
+  <h2>🚧 FixMyCity Road Clicker</h2>
+  <p id="gps">📍 Waiting for GPS...</p>
+  <button id="clickBtn" style="font-size:30px;padding:20px 60px;">CLICK</button>
+  <p id="status"></p>
+
+  <script>
+    const SUPABASE_URL = "https://YOUR-PROJECT.supabase.co";
+    const SUPABASE_KEY = "YOUR-ANON-KEY";
+    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let latest = { lat: null, lon: null };
+
+    navigator.geolocation.watchPosition(
+      pos => {
+        latest.lat = pos.coords.latitude;
+        latest.lon = pos.coords.longitude;
+        document.getElementById('gps').innerText = `📍 ${latest.lat.toFixed(5)}, ${latest.lon.toFixed(5)}`;
+      },
+      err => document.getElementById('gps').innerText = "❌ GPS unavailable",
+      { enableHighAccuracy: true, maximumAge: 1000 }
+    );
+
+    async function saveClick(lat, lon) {
+      const { error } = await supabase.from('road_clicks').insert([{ latitude: lat, longitude: lon }]);
+      if (error) document.getElementById('status').innerText = "⚠️ Failed: " + error.message;
+      else document.getElementById('status').innerText = "✅ Logged at " + new Date().toLocaleTimeString();
+    }
+
+    document.getElementById('clickBtn').addEventListener('click', () => {
+      if (!latest.lat) return alert("Waiting for GPS...");
+      saveClick(latest.lat, latest.lon);
+    });
+  </script>
+</body>
+</html>
