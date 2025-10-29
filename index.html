@@ -1,661 +1,237 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Pothole Reporter</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-        }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: #333;
-            min-height: 100vh;
-            padding: 20px 15px;
-            line-height: 1.4;
-        }
-        
-        .container {
-            max-width: 100%;
-            margin: 0 auto;
-        }
-        
-        .header {
-            text-align: center;
-            margin-bottom: 20px;
-            color: white;
-        }
-        
-        .header h1 {
-            font-size: 28px;
-            margin-bottom: 5px;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-        }
-        
-        .header p {
-            font-size: 16px;
-            opacity: 0.9;
-        }
-        
-        .card {
-            background: white;
-            border-radius: 20px;
-            padding: 20px;
-            margin-bottom: 15px;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-            backdrop-filter: blur(10px);
-        }
-        
-        #status {
-            font-size: 16px;
-            text-align: center;
-            padding: 15px;
-            border-radius: 15px;
-            margin-bottom: 15px;
-            min-height: 70px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-            transition: all 0.3s ease;
-        }
-        
-        .status-ready { 
-            background: linear-gradient(135deg, #d4edda, #c3e6cb); 
-            color: #155724; 
-            border: 2px solid #28a745;
-        }
-        .status-waiting { 
-            background: linear-gradient(135deg, #fff3cd, #ffeaa7); 
-            color: #856404; 
-            border: 2px solid #ffc107;
-        }
-        .status-error { 
-            background: linear-gradient(135deg, #f8d7da, #f5c6cb); 
-            color: #721c24; 
-            border: 2px solid #dc3545;
-        }
-        .status-offline { 
-            background: linear-gradient(135deg, #e2e3e5, #d6d8db); 
-            color: #383d41; 
-            border: 2px solid #6c757d;
-        }
-        
-        .btn-primary {
-            background: linear-gradient(135deg, #007bff, #0056b3);
-            color: white;
-            border: none;
-            padding: 18px 25px;
-            border-radius: 15px;
-            font-size: 18px;
-            font-weight: 600;
-            width: 100%;
-            cursor: pointer;
-            margin-bottom: 10px;
-            box-shadow: 0 4px 15px rgba(0,123,255,0.3);
-            transition: all 0.3s ease;
-        }
-        
-        .btn-primary:active {
-            transform: scale(0.98);
-            box-shadow: 0 2px 8px rgba(0,123,255,0.4);
-        }
-        
-        .btn-primary:disabled {
-            background: #6c757d;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-        
-        .intensity-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin: 20px 0;
-        }
-        
-        .intensity-btn {
-            border: none;
-            border-radius: 16px;
-            cursor: pointer;
-            color: white;
-            font-weight: bold;
-            transition: all 0.2s ease;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            overflow: hidden;
-            padding: 15px 8px;
-            min-height: 90px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        }
-        
-        .intensity-btn:active {
-            transform: scale(0.95);
-        }
-        
-        .intensity-btn.small {
-            font-size: 14px;
-            min-height: 80px;
-        }
-        
-        .intensity-btn.medium {
-            font-size: 15px;
-            min-height: 100px;
-        }
-        
-        .intensity-btn.large {
-            font-size: 16px;
-            min-height: 110px;
-        }
-        
-        .minor { background: linear-gradient(135deg, #28a745, #20c997); }
-        .moderate { background: linear-gradient(135deg, #ffc107, #ffb300); color: #333; }
-        .severe { background: linear-gradient(135deg, #fd7e14, #e55a00); }
-        .critical { background: linear-gradient(135deg, #dc3545, #c82333); }
-        
-        .offline-indicator {
-            position: absolute;
-            top: 6px;
-            right: 6px;
-            background: rgba(0,0,0,0.8);
-            color: white;
-            border-radius: 50%;
-            width: 18px;
-            height: 18px;
-            font-size: 10px;
-            display: none;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .stats-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin: 15px 0;
-        }
-        
-        .stat-item {
-            background: #f8f9fa;
-            padding: 12px;
-            border-radius: 12px;
-            text-align: center;
-        }
-        
-        .stat-label {
-            font-size: 12px;
-            color: #666;
-            margin-bottom: 4px;
-        }
-        
-        .stat-value {
-            font-size: 18px;
-            font-weight: bold;
-            color: #333;
-        }
-        
-        .cache-indicator {
-            background: #ffc107;
-            color: #856404;
-            padding: 2px 6px;
-            border-radius: 8px;
-            font-size: 10px;
-            margin-left: 5px;
-        }
-        
-        .sync-section {
-            margin-top: 15px;
-            padding-top: 15px;
-            border-top: 1px solid #e9ecef;
-        }
-        
-        .sync-status {
-            font-size: 14px;
-            color: #666;
-            margin-bottom: 10px;
-            text-align: center;
-        }
-        
-        .btn-sync {
-            background: linear-gradient(135deg, #6c757d, #5a6268);
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 10px;
-            font-size: 14px;
-            width: 100%;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .btn-sync:active {
-            transform: scale(0.98);
-        }
-        
-        .btn-sync:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
-        
-        .gps-info {
-            font-size: 12px;
-            color: #666;
-            text-align: center;
-            margin-top: 5px;
-        }
-        
-        /* Mobile optimizations */
-        @media (max-width: 380px) {
-            .intensity-grid {
-                grid-template-columns: 1fr;
-                gap: 10px;
-            }
-            
-            .intensity-btn {
-                min-height: 70px;
-                padding: 12px 8px;
-            }
-            
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .header h1 {
-                font-size: 24px;
-            }
-        }
-        
-        @media (min-width: 768px) {
-            .container {
-                max-width: 400px;
-            }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FixMyCity - Report Issue</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <style>
+    .report-form { max-width: 800px; margin: 0 auto; }
+    .form-section { background: white; border-radius: 10px; padding: 2rem; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 2rem; }
+    #locationMap { height: 300px; border-radius: 8px; margin-top: 1rem; }
+    .btn-success { background: linear-gradient(135deg, #28a745, #20c997); border: none; }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>🕳️ Pothole Reporter</h1>
-            <p>Tap to report road issues</p>
-        </div>
-        
-        <div class="card">
-            <div id="status" class="status-waiting">
-                Tap "Get Location" to start
-            </div>
-            
-            <button id="getLocationBtn" class="btn-primary">
-                📍 Get Location
-            </button>
-            
-            <div class="intensity-grid">
-                <button class="intensity-btn small minor" data-intensity="minor">
-                    <div class="offline-indicator">⏳</div>
-                    🟢 Minor<br>
-                    <small>Small bump</small>
-                </button>
-                <button class="intensity-btn medium moderate" data-intensity="moderate">
-                    <div class="offline-indicator">⏳</div>
-                    🟡 Moderate<br>
-                    <small>Noticeable</small>
-                </button>
-                <button class="intensity-btn medium severe" data-intensity="severe">
-                    <div class="offline-indicator">⏳</div>
-                    🟠 Severe<br>
-                    <small>Hard jolt</small>
-                </button>
-                <button class="intensity-btn large critical" data-intensity="critical">
-                    <div class="offline-indicator">⏳</div>
-                    🔴 Critical<br>
-                    <small>Dangerous!</small>
-                </button>
-            </div>
-            
-            <div class="stats-grid">
-                <div class="stat-item">
-                    <div class="stat-label">Total Reports</div>
-                    <div class="stat-value" id="totalCount">0</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-label">Cached</div>
-                    <div class="stat-value" id="cachedCount">0</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-label">GPS Accuracy</div>
-                    <div class="stat-value" id="gpsAccuracy">-</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-label">Last Report</div>
-                    <div class="stat-value" id="lastReportTime">-</div>
-                </div>
-            </div>
-            
-            <div class="sync-section">
-                <div class="sync-status" id="syncStatus">
-                    Checking connection...
-                </div>
-                <button id="syncBtn" class="btn-sync" style="display: none;">
-                    🔄 Sync Cached Reports
-                </button>
-            </div>
-        </div>
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+  <div class="container">
+    <a class="navbar-brand fw-bold" href="index.html">FixMyCity</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+        <li class="nav-item"><a class="nav-link active" href="report.html">Report</a></li>
+        <li class="nav-item"><a class="nav-link" href="map.html">Map</a></li>
+      </ul>
     </div>
+  </div>
+</nav>
 
-    <script type="module">
-        import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+<section class="py-5 bg-light">
+  <div class="container">
+    <div class="report-form">
+      <div class="text-center mb-5">
+        <h1 class="fw-bold">Report Road Issue</h1>
+        <p class="lead">Help us improve our city by reporting road problems</p>
+      </div>
 
-        const SUPABASE_URL = 'https://kdjwrgcyhtrxfjvhonfh.supabase.co'
-        const SUPABASE_KEY = 'sb_publishable_SqTmlMsLjOXafXiv1vwxcg_--j67cTK'
-        const supabase = createClient(SUPABASE_URL, SUPABASE_KEY)
+      <form id="reportForm">
+        <!-- Issue Type -->
+        <div class="form-section">
+          <h3 class="mb-4">Issue Type</h3>
+          <div class="mb-3">
+            <label for="issueType" class="form-label fw-bold">What type of issue?</label>
+            <select class="form-select" id="issueType" required>
+              <option value="">Select issue type</option>
+              <option value="pothole">🕳️ Pothole</option>
+              <option value="crack">📏 Road Crack</option>
+              <option value="bump">📈 Speed Bump Issue</option>
+              <option value="drainage">💧 Drainage Problem</option>
+              <option value="other">❓ Other</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="description" class="form-label fw-bold">Description</label>
+            <textarea class="form-control" id="description" rows="3" placeholder="Describe the road issue..."></textarea>
+          </div>
+        </div>
 
-        // Elements
-        const statusEl = document.getElementById('status')
-        const getLocationBtn = document.getElementById('getLocationBtn')
-        const totalCountEl = document.getElementById('totalCount')
-        const cachedCountEl = document.getElementById('cachedCount')
-        const lastReportTimeEl = document.getElementById('lastReportTime')
-        const gpsAccuracyEl = document.getElementById('gpsAccuracy')
-        const syncStatusEl = document.getElementById('syncStatus')
-        const syncBtn = document.getElementById('syncBtn')
+        <!-- Location -->
+        <div class="form-section">
+          <h3 class="mb-4">Location</h3>
+          <div class="alert alert-info">
+            <small>📍 Click on the map to set the exact location of the issue</small>
+          </div>
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label for="latitude" class="form-label fw-bold">Latitude</label>
+              <input type="number" class="form-control" id="latitude" step="any" readonly>
+            </div>
+            <div class="col-md-6">
+              <label for="longitude" class="form-label fw-bold">Longitude</label>
+              <input type="number" class="form-control" id="longitude" step="any" readonly>
+            </div>
+          </div>
+          <div id="locationMap"></div>
+        </div>
 
-        // State
-        let currentLocation = null
-        let totalReports = 0
-        let gpsWatchId = null
-        let isOnline = true
-        let syncInProgress = false
+        <!-- Severity -->
+        <div class="form-section">
+          <h3 class="mb-4">Severity</h3>
+          <div class="mb-3">
+            <label class="form-label fw-bold">How severe is the issue?</label>
+            <div class="btn-group w-100" role="group">
+              <input type="radio" class="btn-check" name="severity" id="minor" value="1" checked>
+              <label class="btn btn-outline-success" for="minor">Minor</label>
+              
+              <input type="radio" class="btn-check" name="severity" id="moderate" value="2">
+              <label class="btn btn-outline-warning" for="moderate">Moderate</label>
+              
+              <input type="radio" class="btn-check" name="severity" id="severe" value="3">
+              <label class="btn btn-outline-danger" for="severe">Severe</label>
+            </div>
+          </div>
+        </div>
 
-        // Cache setup
-        const CACHE_KEY = 'pothole_reports_cache'
-        let reportCache = JSON.parse(localStorage.getItem(CACHE_KEY) || '[]')
+        <!-- Submit Button -->
+        <div class="text-center">
+          <button type="submit" class="btn btn-success btn-lg px-5">
+            <span class="submit-text">📨 Submit Report</span>
+            <span class="loading-text" style="display: none;">⏳ Sending...</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
 
-        // Intensity levels
-        const intensityLevels = {
-            minor: { level: 1, description: "Minor bump", size: "small" },
-            moderate: { level: 2, description: "Moderate bump", size: "medium" },
-            severe: { level: 3, description: "Severe jolt", size: "medium" },
-            critical: { level: 4, description: "Critical danger", size: "large" }
-        }
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-        // Network detection
-        async function testInternetConnection() {
-            try {
-                const response = await fetch('https://www.gstatic.com/generate_204', { 
-                    method: 'HEAD',
-                    cache: 'no-cache',
-                    timeout: 5000
-                })
-                return response.status === 204
-            } catch (error) {
-                return false
-            }
-        }
+<script type="module">
+  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
 
-        // Cache management
-        function updateCacheDisplay() {
-            const cachedCount = reportCache.length
-            cachedCountEl.textContent = cachedCount
-            
-            if (cachedCount > 0) {
-                syncBtn.style.display = 'block'
-            } else {
-                syncBtn.style.display = 'none'
-            }
-        }
+  // Your working Supabase credentials
+  const supabaseUrl = 'https://kdjwrgcyhtrxfjvhonfh.supabase.co';
+  const supabaseKey = 'sb_publishable_SqTmlMsLjOXafXiv1vwxcg_--j67cTK';
+  const supabase = createClient(supabaseUrl, supabaseKey);
 
-        function saveToCache(reportData) {
-            reportCache.push({
-                ...reportData,
-                cached_at: new Date().toISOString(),
-                id: Date.now() + Math.random()
-            })
-            localStorage.setItem(CACHE_KEY, JSON.stringify(reportCache))
-            updateCacheDisplay()
-        }
+  // Initialize Leaflet map
+  const locationMap = L.map('locationMap').setView([25.5788, 91.8933], 13);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { 
+    attribution: '© OpenStreetMap contributors' 
+  }).addTo(locationMap);
 
-        // Sync functionality
-        async function syncCachedReports() {
-            if (syncInProgress || reportCache.length === 0) return
-            
-            const isReallyOnline = await testInternetConnection()
-            if (!isReallyOnline) {
-                syncStatusEl.textContent = '❌ No internet connection'
-                return
-            }
-            
-            syncInProgress = true
-            syncBtn.disabled = true
-            syncStatusEl.textContent = `🔄 Syncing ${reportCache.length} reports...`
-            
-            const successfulSyncs = []
-            const failedSyncs = []
-            
-            for (let i = 0; i < reportCache.length; i++) {
-                const cachedReport = reportCache[i]
-                try {
-                    const { error } = await supabase.from('road_clicks').insert([{
-                        lat: cachedReport.lat,
-                        lon: cachedReport.lon,
-                        accuracy: cachedReport.accuracy,
-                        intensity: cachedReport.intensity,
-                        intensity_label: cachedReport.intensity_label,
-                        description: cachedReport.description,
-                        speed: cachedReport.speed,
-                        heading: cachedReport.heading,
-                        created_at: cachedReport.created_at,
-                        cached_sync: true
-                    }])
-                    
-                    if (!error) successfulSyncs.push(cachedReport.id)
-                    else throw error
-                    
-                } catch (error) {
-                    failedSyncs.push(cachedReport)
-                }
-                
-                syncStatusEl.textContent = `🔄 Syncing... (${i + 1}/${reportCache.length})`
-            }
-            
-            reportCache = failedSyncs
-            localStorage.setItem(CACHE_KEY, JSON.stringify(reportCache))
-            updateCacheDisplay()
-            
-            syncInProgress = false
-            syncBtn.disabled = false
-            
-            if (successfulSyncs.length > 0) {
-                syncStatusEl.textContent = `✅ Synced ${successfulSyncs.length} reports!`
-                setTimeout(updateOnlineStatus, 2000)
-            } else {
-                syncStatusEl.textContent = '❌ Sync failed'
-            }
-        }
+  let marker = null;
 
-        // Network status
-        async function updateOnlineStatus() {
-            isOnline = await testInternetConnection()
-            
-            if (isOnline) {
-                syncStatusEl.textContent = reportCache.length > 0 
-                    ? `✅ Online - ${reportCache.length} cached` 
-                    : '✅ Online - Ready'
-                statusEl.className = currentLocation ? 'status-ready' : 'status-waiting'
-                
-                if (reportCache.length > 0 && !syncInProgress) {
-                    setTimeout(syncCachedReports, 1000)
-                }
-            } else {
-                syncStatusEl.textContent = reportCache.length > 0
-                    ? `📴 Offline - ${reportCache.length} cached`
-                    : '📴 Offline - Reports will cache'
-                if (statusEl.className !== 'status-error') {
-                    statusEl.className = 'status-offline'
-                }
-            }
-            
-            document.querySelectorAll('.offline-indicator').forEach(indicator => {
-                indicator.style.display = isOnline ? 'none' : 'flex'
-            })
-        }
+  // Map click sets lat/lng
+  locationMap.on('click', (e) => {
+    const { lat, lng } = e.latlng;
+    document.getElementById('latitude').value = lat.toFixed(6);
+    document.getElementById('longitude').value = lng.toFixed(6);
 
-        // GPS handling
-        function startGPSTracking() {
-            if (!navigator.geolocation) {
-                updateStatus('❌ GPS not supported', 'status-error')
-                return
-            }
+    if(marker) locationMap.removeLayer(marker);
+    marker = L.marker([lat, lng]).addTo(locationMap);
+  });
 
-            updateStatus('📍 Getting location...', 'status-waiting')
-            
-            gpsWatchId = navigator.geolocation.watchPosition(
-                (position) => {
-                    currentLocation = {
-                        lat: position.coords.latitude,
-                        lon: position.coords.longitude,
-                        accuracy: position.coords.accuracy,
-                        speed: position.coords.speed || 0,
-                        heading: position.coords.heading || null
-                    }
-                    
-                    updateStatus(
-                        `✅ Ready to report!<br><small>Accuracy: ±${currentLocation.accuracy.toFixed(1)}m</small>`,
-                        'status-ready'
-                    )
-                    
-                    gpsAccuracyEl.textContent = `±${currentLocation.accuracy.toFixed(1)}m`
-                    
-                    document.querySelectorAll('.intensity-btn').forEach(btn => {
-                        btn.disabled = false
-                    })
-                },
-                (error) => {
-                    let errorMessage = '❌ GPS: '
-                    switch(error.code) {
-                        case error.PERMISSION_DENIED:
-                            errorMessage += 'Allow location access'
-                            break
-                        case error.POSITION_UNAVAILABLE:
-                            errorMessage += 'Location unavailable'
-                            break
-                        case error.TIMEOUT:
-                            errorMessage += 'Timeout - retrying'
-                            break
-                        default:
-                            errorMessage += 'Error getting location'
-                    }
-                    updateStatus(errorMessage, 'status-error')
-                    currentLocation = null
-                    
-                    document.querySelectorAll('.intensity-btn').forEach(btn => {
-                        btn.disabled = true
-                    })
-                },
-                {
-                    enableHighAccuracy: true,
-                    timeout: 10000,
-                    maximumAge: 0
-                }
-            )
-        }
+  // Get current location button (optional)
+  function getCurrentLocation() {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition((position) => {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+        
+        document.getElementById('latitude').value = lat.toFixed(6);
+        document.getElementById('longitude').value = lng.toFixed(6);
+        
+        if(marker) locationMap.removeLayer(marker);
+        marker = L.marker([lat, lng]).addTo(locationMap);
+        locationMap.setView([lat, lng], 16);
+      });
+    }
+  }
 
-        // Report pothole
-        async function reportPothole(intensity) {
-            if (!currentLocation) return
+  // Add current location button to map
+  L.control.locate({
+    position: 'topright',
+    strings: {
+      title: "Show my location"
+    }
+  }).addTo(locationMap);
 
-            const intensityInfo = intensityLevels[intensity]
-            const now = new Date()
-            const reportData = {
-                lat: currentLocation.lat,
-                lon: currentLocation.lon,
-                accuracy: currentLocation.accuracy,
-                intensity: intensityInfo.level,
-                intensity_label: intensity,
-                description: intensityInfo.description,
-                speed: currentLocation.speed,
-                heading: currentLocation.heading,
-                created_at: now.toISOString()
-            }
+  document.getElementById('reportForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const btn = e.target.querySelector('button[type="submit"]');
+    const submitText = btn.querySelector('.submit-text');
+    const loadingText = btn.querySelector('.loading-text');
+    
+    submitText.style.display = 'none';
+    loadingText.style.display = 'inline';
+    btn.disabled = true;
 
-            try {
-                const button = document.querySelector(`[data-intensity="${intensity}"]`)
-                button.style.opacity = '0.7'
-                setTimeout(() => button.style.opacity = '1', 300)
+    try {
+      const issueType = document.getElementById('issueType').value;
+      const description = document.getElementById('description').value;
+      const latitude = parseFloat(document.getElementById('latitude').value);
+      const longitude = parseFloat(document.getElementById('longitude').value);
+      const severity = document.querySelector('input[name="severity"]:checked').value;
 
-                updateStatus(`📡 Reporting...`, 'status-waiting')
+      if(!latitude || !longitude) {
+        throw new Error('Please select a location on the map');
+      }
 
-                const isReallyOnline = await testInternetConnection()
-                let success = false
-                
-                if (isReallyOnline) {
-                    const { error } = await supabase.from('road_clicks').insert([reportData])
-                    if (!error) success = true
-                }
+      if(!issueType) {
+        throw new Error('Please select an issue type');
+      }
 
-                if (success) {
-                    totalReports++
-                    totalCountEl.textContent = totalReports
-                    lastReportTimeEl.textContent = now.toLocaleTimeString()
-                    updateStatus(`✅ ${intensityInfo.description}`, 'status-ready')
-                } else {
-                    saveToCache(reportData)
-                    totalReports++
-                    totalCountEl.textContent = totalReports
-                    lastReportTimeEl.textContent = now.toLocaleTimeString()
-                    updateStatus(`💾 Cached: ${intensityInfo.description}`, 'status-offline')
-                }
+      // Insert into road_clicks table (which we know works)
+      const { data, error } = await supabase.from('road_clicks').insert([{
+        lat: latitude,
+        lon: longitude,
+        intensity: parseInt(severity),
+        intensity_label: ['minor', 'moderate', 'severe'][severity-1],
+        description: `${issueType}: ${description}`,
+        issue_type: issueType,
+        created_at: new Date().toISOString()
+      }]);
 
-            } catch (error) {
-                saveToCache(reportData)
-                totalReports++
-                totalCountEl.textContent = totalReports
-                updateStatus(`💾 Saved offline`, 'status-offline')
-            }
-        }
+      if(error) throw error;
 
-        function updateStatus(message, className = 'status-waiting') {
-            statusEl.innerHTML = message
-            statusEl.className = className
-        }
+      alert('✅ Report submitted successfully! Thank you for helping improve our city.');
+      
+      // Reset form
+      e.target.reset();
+      document.getElementById('latitude').value = '';
+      document.getElementById('longitude').value = '';
+      if(marker) locationMap.removeLayer(marker);
+      marker = null;
 
-        // Event listeners
-        getLocationBtn.addEventListener('click', startGPSTracking)
-        syncBtn.addEventListener('click', syncCachedReports)
+    } catch(err) {
+      console.error('Submission error:', err);
+      alert('❌ Error: ' + (err.message || 'Failed to submit report'));
+    } finally {
+      submitText.style.display = 'inline';
+      loadingText.style.display = 'none';
+      btn.disabled = false;
+    }
+  });
 
-        document.querySelectorAll('.intensity-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                if (btn.disabled) return
-                const intensity = btn.getAttribute('data-intensity')
-                reportPothole(intensity)
-            })
-            btn.disabled = true
-        })
+  // Test connection on load
+  console.log('Testing Supabase connection...');
+  supabase.from('road_clicks').select('count').limit(1)
+    .then(({ data, error }) => {
+      if (error) {
+        console.error('❌ Supabase connection failed:', error);
+      } else {
+        console.log('✅ Supabase connection successful!');
+      }
+    });
+</script>
 
-        // Network events
-        window.addEventListener('online', updateOnlineStatus)
-        window.addEventListener('offline', updateOnlineStatus)
-
-        // Initialize
-        updateOnlineStatus()
-        updateCacheDisplay()
-        setInterval(updateOnlineStatus, 15000)
-
-        // Cleanup
-        window.addEventListener('beforeunload', () => {
-            if (gpsWatchId) navigator.geolocation.clearWatch(gpsWatchId)
-        })
-
-        console.log('🚗 Pothole Reporter Ready!')
-    </script>
 </body>
 </html>
